@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <gdiplus.h>
 #include <fstream>
+#include <windows.h>
 
 #define MAX_LOADSTRING 100
 #define TMR_1 1
@@ -24,9 +25,10 @@ HWND hwndButton;
 HWND TextBox, TextBox2;
 
 // sent data
+bool is_box = 0;
 bool attached = 0;
 int kierunek, weight = 100, max_weight = 1000;
-int col = 0, box_x = 350, box_y = 565, hook_x=350, hook_y=500;
+int col = 0, box_x = 350, box_y = 565, hook_x = 350, hook_y = 500;
 std::vector<Point> data;
 RECT drawArea1 = { 350, 130, 800, 619 };
 RECT drawArea2 = { 50, 400, 650, 422 };
@@ -83,6 +85,12 @@ void drawHook(HDC hdc) {
 	Gdiplus::Bitmap box(L"hak.png");
 	gf2.DrawImage(&box, hook_x, hook_y);
 	gf2.DrawLine(&pen, hook_x + 6, 124, hook_x + 6, hook_y);
+	if (is_box == true)
+	{
+		Gdiplus::Bitmap box(L"box.png");
+		gf2.DrawImage(&box, box_x, box_y);
+	}
+
 }
 
 void repaintWindow(HWND hWnd, HDC& hdc, PAINTSTRUCT& ps, RECT* drawArea)
@@ -92,11 +100,11 @@ void repaintWindow(HWND hWnd, HDC& hdc, PAINTSTRUCT& ps, RECT* drawArea)
 	else
 		InvalidateRect(hWnd, drawArea, TRUE); //repaint drawArea
 	hdc = BeginPaint(hWnd, &ps);
-	if (attached==1)
+	if (attached == 1)
 	{
 		drawBox(hdc);
 	}
-	else if (attached==0)
+	else if (attached == 0)
 	{
 		drawHook(hdc);
 	}
@@ -211,19 +219,19 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
 
 	// create button and store the handle                                                       
-	hwndButton = CreateWindow(TEXT("button"), TEXT("GÓRA"),
+	hwndButton = CreateWindow(TEXT("button"), TEXT("UP"),
 		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
 		900, 400, 100, 50, hWnd, (HMENU)ID_RBUTTON1, GetModuleHandle(NULL), NULL);
 
-	hwndButton = CreateWindow(TEXT("button"), TEXT("DÓ£"),
+	hwndButton = CreateWindow(TEXT("button"), TEXT("DOWN"),
 		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
 		900, 500, 100, 50, hWnd, (HMENU)ID_RBUTTON2, GetModuleHandle(NULL), NULL);
 
-	hwndButton = CreateWindow(TEXT("button"), TEXT("PRAWO"),
+	hwndButton = CreateWindow(TEXT("button"), TEXT("RIGHT"),
 		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
 		1000, 450, 100, 50, hWnd, (HMENU)ID_RBUTTON3, GetModuleHandle(NULL), NULL);
 
-	hwndButton = CreateWindow(TEXT("button"), TEXT("LEWO"),
+	hwndButton = CreateWindow(TEXT("button"), TEXT("LEFT"),
 		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
 		800, 450, 100, 50, hWnd, (HMENU)ID_RBUTTON4, GetModuleHandle(NULL), NULL);
 
@@ -232,7 +240,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		900, 450, 100, 50, hWnd, (HMENU)ID_RBUTTON5, GetModuleHandle(NULL), NULL);
 
 	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
-		TEXT("Show box"),                  // the caption of the button
+		TEXT("ADD BOX"),                  // the caption of the button
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
 		900, 100,                                  // the left and top co-ordinates
 		100, 50,                              // width and height
@@ -261,7 +269,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		hInstance,                            // the instance of your application
 		NULL);                               // extra bits you dont really need
 
-
+	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
+		TEXT("ATTACH"),                  // the caption of the button
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
+		900, 200,                                  // the left and top co-ordinates
+		100, 50,                              // width and height
+		hWnd,                                 // parent window handle
+		(HMENU)ID_BUTTON8,                   // the ID of your button
+		hInstance,                            // the instance of your application
+		NULL);                               // extra bits you dont really need
 	OnCreate(hWnd);
 
 	if (!hWnd)
@@ -309,7 +325,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case ID_BUTTON1:
 		{
-			attached = 1;
+			is_box = 1;
 			repaintWindow(hWnd, hdc, ps, &drawArea1);
 		}
 		break;
@@ -368,6 +384,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			GetWindowText(TextBox2, text2, 10);
 			tch_waga(1);
 			break;
+		case ID_BUTTON8:
+			if (is_box == 1)
+			{
+				kierunek = 5;
+				SetTimer(hWnd, TMR_1, 25, 0);
+			}
+			else
+			{
+				KillTimer(hWnd, TMR_1);
+			}
+			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -405,26 +432,61 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		switch (wParam)
 		{
 		case TMR_1:
-			repaintWindow(hWnd, hdc, ps, &drawArea1);
-			if (box_x < 650 && kierunek == 3)
+			repaintWindow(hWnd, hdc, ps, &drawArea1); 
+			if (((box_x < 700 && attached == 1 )|| (hook_x < 700 && attached == 0)) && kierunek == 3)//b³¹d
 			{
-				box_x++;
+				if (attached == 1)
+				{
+					box_x++;
+				}
 				hook_x++;
 			}
-			else if (box_x > 350 && kierunek == 4)
+			else if (((box_x > 350 && attached == 1)||( hook_x > 350 && attached == 0))&& kierunek == 4)//b³¹d
 			{
-				box_x--;
+				if (attached == 1)
+				{
+					box_x--;
+				}
 				hook_x--;
 			}
-			else if (box_y > 150 && kierunek == 1)
+			else if (((box_y > 150 && attached == 1) || (hook_y > 150 && attached == 0)) && kierunek == 1)//b³¹d
 			{
-				box_y--;
+				if (attached == 1)
+				{
+					box_y--;
+				}
 				hook_y--;
 			}
-			else if (box_y < 565 && kierunek == 2)
+			else if (((box_y < 565 && attached == 1) || (hook_y < 565 && attached == 0)) && kierunek == 2)//b³¹d
 			{
-				box_y++;
+				if (attached == 1)
+				{
+					box_y++;
+				}
 				hook_y++;
+			}
+			else if (kierunek == 5 && attached == 0)
+			{
+				if (box_x > hook_x - 18)
+				{
+					hook_x++;
+				}
+				else if (box_x < hook_x - 18)
+				{
+					hook_x--;
+				}
+				else if (box_y < hook_y + 10)
+				{
+					hook_y--;
+				}
+				else if (box_y > hook_y + 10)
+				{
+					hook_y++;
+				}
+				if (hook_x - 18 == box_x && hook_y + 10 == box_y)
+				{
+					attached = 1;
+				}
 			}
 			else
 			{
@@ -432,9 +494,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		}
-
-
-
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
