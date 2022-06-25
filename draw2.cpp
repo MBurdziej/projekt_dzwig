@@ -15,15 +15,16 @@
 HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
+TCHAR text1[10], text2[10];
 
 INT value;
 
 // buttons
 HWND hwndButton;
-HWND TextBox;
+HWND TextBox, TextBox2;
 
 // sent data
-int kierunek;
+int kierunek, weight = 100, max_weight = 1000;
 int col = 0, box_x = 350, box_y = 565;
 std::vector<Point> data;
 RECT drawArea1 = { 350, 130, 800, 619 };
@@ -37,16 +38,19 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	Buttons(HWND, UINT, WPARAM, LPARAM);
 
 
-void MyOnPaint(HDC hdc)
+void tch_waga(int temp)
 {
-	Graphics graphics(hdc);
-	Pen pen(Color(255, 0, 0, 255));
-	Pen pen2(Color(255, 25 * col, 0, 255));
-
-	for (int i = 1; i < 100; i++)
-		graphics.DrawLine(&pen2, data[i - 1].X, data[i - 1].Y, data[i].X, data[i].Y);
-
-	graphics.DrawRectangle(&pen, 50 + value, 400, 10, 20);
+	int i = 0;
+	int num = 0;
+	while (text1[i] != 0)
+	{
+		num = (text1[i] - '0') + (num * 10);
+		i++;
+	}
+	if (temp == 0)
+		weight = num;
+	else if (temp == 0)
+		max_weight = num;
 }
 
 void inputData()
@@ -196,31 +200,51 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	// create button and store the handle                                                       
 	hwndButton = CreateWindow(TEXT("button"), TEXT("GÓRA"),
 		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
-		1000, 0, 100, 50, hWnd, (HMENU)ID_RBUTTON1, GetModuleHandle(NULL), NULL);
+		900, 400, 100, 50, hWnd, (HMENU)ID_RBUTTON1, GetModuleHandle(NULL), NULL);
 
 	hwndButton = CreateWindow(TEXT("button"), TEXT("DÓ£"),
 		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
-		1000, 100, 100, 50, hWnd, (HMENU)ID_RBUTTON2, GetModuleHandle(NULL), NULL);
+		900, 500, 100, 50, hWnd, (HMENU)ID_RBUTTON2, GetModuleHandle(NULL), NULL);
 
 	hwndButton = CreateWindow(TEXT("button"), TEXT("PRAWO"),
 		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
-		1100, 50, 100, 50, hWnd, (HMENU)ID_RBUTTON3, GetModuleHandle(NULL), NULL);
+		1000, 450, 100, 50, hWnd, (HMENU)ID_RBUTTON3, GetModuleHandle(NULL), NULL);
 
 	hwndButton = CreateWindow(TEXT("button"), TEXT("LEWO"),
 		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
-		900, 50, 100, 50, hWnd, (HMENU)ID_RBUTTON4, GetModuleHandle(NULL), NULL);
+		800, 450, 100, 50, hWnd, (HMENU)ID_RBUTTON4, GetModuleHandle(NULL), NULL);
 
 	hwndButton = CreateWindow(TEXT("button"), TEXT("STOP"),
 		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
-		1000, 50, 100, 50, hWnd, (HMENU)ID_RBUTTON5, GetModuleHandle(NULL), NULL);
+		900, 450, 100, 50, hWnd, (HMENU)ID_RBUTTON5, GetModuleHandle(NULL), NULL);
 
 	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
 		TEXT("Show box"),                  // the caption of the button
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
-		800, 10,                                  // the left and top co-ordinates
-		80, 50,                              // width and height
+		900, 100,                                  // the left and top co-ordinates
+		100, 50,                              // width and height
 		hWnd,                                 // parent window handle
 		(HMENU)ID_BUTTON1,                   // the ID of your button
+		hInstance,                            // the instance of your application
+		NULL);                               // extra bits you dont really need
+
+	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
+		TEXT("Weight"),                  // the caption of the button
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
+		900, 10,                                  // the left and top co-ordinates
+		100, 50,                              // width and height
+		hWnd,                                 // parent window handle
+		(HMENU)ID_BUTTON6,                   // the ID of your button
+		hInstance,                            // the instance of your application
+		NULL);                               // extra bits you dont really need
+
+	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
+		TEXT("MAX Weight"),                  // the caption of the button
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
+		700, 10,                                  // the left and top co-ordinates
+		80, 50,                              // width and height
+		hWnd,                                 // parent window handle
+		(HMENU)ID_BUTTON7,                   // the ID of your button
 		hInstance,                            // the instance of your application
 		NULL);                               // extra bits you dont really need
 
@@ -276,23 +300,59 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 		case ID_RBUTTON1:
-			kierunek = 1;
-			SetTimer(hWnd, TMR_1, 25, 0);
+			if (weight <= max_weight)
+			{
+				kierunek = 1;
+				SetTimer(hWnd, TMR_1, 25, 0);
+			}
+			else
+			{
+				KillTimer(hWnd, TMR_1);
+			}
 			break;
 		case ID_RBUTTON2:
-			kierunek = 2;
-			SetTimer(hWnd, TMR_1, 25, 0);
+			if (weight <= max_weight)
+			{
+				kierunek = 2;
+				SetTimer(hWnd, TMR_1, 25, 0);
+			}
+			else
+			{
+				KillTimer(hWnd, TMR_1);
+			}
 			break;
 		case ID_RBUTTON3:
-			kierunek = 3;
-			SetTimer(hWnd, TMR_1, 25, 0);
+			if (weight <= max_weight)
+			{
+				kierunek = 3;
+				SetTimer(hWnd, TMR_1, 25, 0);
+			}
+			else
+			{
+				KillTimer(hWnd, TMR_1);
+			}
 			break;
 		case ID_RBUTTON4:
-			kierunek = 4;
-			SetTimer(hWnd, TMR_1, 25, 0);
+			if (weight <= max_weight)
+			{
+				kierunek = 4;
+				SetTimer(hWnd, TMR_1, 25, 0);
+			}
+			else
+			{
+				KillTimer(hWnd, TMR_1);
+			}
 			break;
 		case ID_RBUTTON5:
 			KillTimer(hWnd, TMR_1);
+			break;
+		case ID_BUTTON6:
+			GetWindowText(TextBox, text1, 10);
+			tch_waga(0);
+			break;
+		case ID_BUTTON7:
+			GetWindowText(TextBox2, text2, 10);
+			tch_waga(1);
 			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
@@ -300,9 +360,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CREATE:
 	{
-		TextBox = CreateWindow(TEXT("EDIT"), TEXT("1"),
+		TextBox = CreateWindow(TEXT("EDIT"), TEXT("100"),
 			WS_VISIBLE | WS_CHILD | WS_BORDER,
-			700, 10, 60, 20,
+			840, 25, 60, 20,
+			hWnd, (HMENU)NULL, NULL, NULL);
+
+		TextBox2 = CreateWindow(TEXT("EDIT"), TEXT("1000"),
+			WS_VISIBLE | WS_CHILD | WS_BORDER,
+			640, 25, 60, 20,
 			hWnd, (HMENU)NULL, NULL, NULL);
 	}
 	break;
@@ -326,11 +391,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case TMR_1:
 			repaintWindow(hWnd, hdc, ps, &drawArea1, 1);
-			if (box_x < 650 && kierunek==3)
+			if (box_x < 650 && kierunek == 3)
 			{
 				box_x++;
 			}
-			else if(box_x > 350 && kierunek == 4)
+			else if (box_x > 350 && kierunek == 4)
 			{
 				box_x--;
 			}
