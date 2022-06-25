@@ -24,8 +24,9 @@ HWND hwndButton;
 HWND TextBox, TextBox2;
 
 // sent data
+bool attached = 0;
 int kierunek, weight = 100, max_weight = 1000;
-int col = 0, box_x = 350, box_y = 565;
+int col = 0, box_x = 350, box_y = 565, hook_x=350, hook_y=500;
 std::vector<Point> data;
 RECT drawArea1 = { 350, 130, 800, 619 };
 RECT drawArea2 = { 50, 400, 650, 422 };
@@ -76,16 +77,28 @@ void drawBox(HDC hdc) {
 	gf2.DrawLine(&pen, box_x + 22, 124, box_x + 22, box_y);
 }
 
-void repaintWindow(HWND hWnd, HDC& hdc, PAINTSTRUCT& ps, RECT* drawArea, int draw)
+void drawHook(HDC hdc) {
+	Gdiplus::Graphics gf2(hdc);
+	Pen pen(Color(255, 0, 0, 0));
+	Gdiplus::Bitmap box(L"hak.png");
+	gf2.DrawImage(&box, hook_x, hook_y);
+	gf2.DrawLine(&pen, hook_x + 6, 124, hook_x + 6, hook_y);
+}
+
+void repaintWindow(HWND hWnd, HDC& hdc, PAINTSTRUCT& ps, RECT* drawArea)
 {
 	if (drawArea == NULL)
 		InvalidateRect(hWnd, NULL, TRUE); // repaint all
 	else
 		InvalidateRect(hWnd, drawArea, TRUE); //repaint drawArea
 	hdc = BeginPaint(hWnd, &ps);
-	if (draw == 1)
+	if (attached==1)
 	{
 		drawBox(hdc);
+	}
+	else if (attached==0)
+	{
+		drawHook(hdc);
 	}
 
 	EndPaint(hWnd, &ps);
@@ -296,7 +309,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case ID_BUTTON1:
 		{
-			repaintWindow(hWnd, hdc, ps, &drawArea1, 1);
+			attached = 1;
+			repaintWindow(hWnd, hdc, ps, &drawArea1);
 		}
 		break;
 		case ID_RBUTTON1:
@@ -380,6 +394,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		Gdiplus::Bitmap bmp(L"dzwig.png");
 		gf.DrawImage(&bmp, 0, 0);
 		EndPaint(hWnd, &ps);
+		repaintWindow(hWnd, hdc, ps, &drawArea1);
 	}
 	break;
 	case WM_DESTROY:
@@ -390,22 +405,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		switch (wParam)
 		{
 		case TMR_1:
-			repaintWindow(hWnd, hdc, ps, &drawArea1, 1);
+			repaintWindow(hWnd, hdc, ps, &drawArea1);
 			if (box_x < 650 && kierunek == 3)
 			{
 				box_x++;
+				hook_x++;
 			}
 			else if (box_x > 350 && kierunek == 4)
 			{
 				box_x--;
+				hook_x--;
 			}
 			else if (box_y > 150 && kierunek == 1)
 			{
 				box_y--;
+				hook_y--;
 			}
 			else if (box_y < 565 && kierunek == 2)
 			{
 				box_y++;
+				hook_y++;
 			}
 			else
 			{
