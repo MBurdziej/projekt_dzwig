@@ -3,11 +3,8 @@
 
 #include "stdafx.h"
 #include "draw2.h"
-#include <vector>
 #include <cstdio>
 #include <gdiplus.h>
-#include <fstream>
-#include <windows.h>
 
 #define MAX_LOADSTRING 100
 #define TMR_1 1
@@ -28,10 +25,8 @@ HWND TextBox, TextBox2;
 bool is_box = 0;
 bool attached = 0;
 int kierunek, weight = 100, max_weight = 1000, acceleration;
-int col = 0, box_x = 350, box_y = 565, hook_x = 350, hook_y = 500;
-std::vector<Point> data;
+int box_x = 350, box_y = 565, hook_x = 350, hook_y = 500;
 RECT drawArea1 = { 350, 130, 800, 619 };
-RECT drawArea2 = { 50, 400, 650, 422 };
 
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -56,18 +51,8 @@ void tch_waga(int temp)
 		max_weight = num;
 }
 
-void inputData()
-{
-	data.push_back(Point(0, 0));
-	for (int i = 1; i < 100; i++) {
-		data.push_back(Point(2 * i + 1, 200 * rand() / RAND_MAX));
-	}
-}
-
-
 int OnCreate(HWND window)
 {
-	inputData();
 	return 0;
 }
 
@@ -450,7 +435,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case TMR_1:
 			repaintWindow(hWnd, hdc, ps, &drawArea1);
-			if (((box_x < 700 && attached == 1) || (hook_x < 700 && attached == 0)) && kierunek == 3)//b³¹d
+			if (((box_x < 680 && attached == 1) || (hook_x < 680 && attached == 0)) && kierunek == 3)//b³¹d
 			{
 				if (attached == 1)
 				{
@@ -505,15 +490,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					attached = 1;
 				}
 			}
-			else if (kierunek == 6 && box_y<=565)
+			else if (kierunek == 6 && box_y <= 565)
 			{
 				attached = 0;
-				box_y=box_y+acceleration;
+				box_y = box_y + acceleration;
 				acceleration++;
 				if (box_y >= 565)
 				{
 					box_y = 565;
 					acceleration = 0;
+					repaintWindow(hWnd, hdc, ps, &drawArea1);
+					KillTimer(hWnd, TMR_1);
 				}
 			}
 			else
