@@ -27,7 +27,7 @@ HWND TextBox, TextBox2;
 // sent data
 bool is_box = 0;
 bool attached = 0;
-int kierunek, weight = 100, max_weight = 1000;
+int kierunek, weight = 100, max_weight = 1000, acceleration;
 int col = 0, box_x = 350, box_y = 565, hook_x = 350, hook_y = 500;
 std::vector<Point> data;
 RECT drawArea1 = { 350, 130, 800, 619 };
@@ -278,6 +278,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		(HMENU)ID_BUTTON8,                   // the ID of your button
 		hInstance,                            // the instance of your application
 		NULL);                               // extra bits you dont really need
+
+	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
+		TEXT("DROP"),                  // the caption of the button
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
+		900, 300,                                  // the left and top co-ordinates
+		100, 50,                              // width and height
+		hWnd,                                 // parent window handle
+		(HMENU)ID_BUTTON9,                   // the ID of your button
+		hInstance,                            // the instance of your application
+		NULL);                               // extra bits you dont really need
+
 	OnCreate(hWnd);
 
 	if (!hWnd)
@@ -395,6 +406,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				KillTimer(hWnd, TMR_1);
 			}
 			break;
+		case ID_BUTTON9:
+		{
+			kierunek = 6;
+			SetTimer(hWnd, TMR_1, 25, 0);
+		}
+		break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -432,8 +449,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		switch (wParam)
 		{
 		case TMR_1:
-			repaintWindow(hWnd, hdc, ps, &drawArea1); 
-			if (((box_x < 700 && attached == 1 )|| (hook_x < 700 && attached == 0)) && kierunek == 3)//b³¹d
+			repaintWindow(hWnd, hdc, ps, &drawArea1);
+			if (((box_x < 700 && attached == 1) || (hook_x < 700 && attached == 0)) && kierunek == 3)//b³¹d
 			{
 				if (attached == 1)
 				{
@@ -441,7 +458,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				hook_x++;
 			}
-			else if (((box_x > 350 && attached == 1)||( hook_x > 350 && attached == 0))&& kierunek == 4)//b³¹d
+			else if (((box_x > 350 && attached == 1) || (hook_x > 350 && attached == 0)) && kierunek == 4)//b³¹d
 			{
 				if (attached == 1)
 				{
@@ -486,6 +503,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (hook_x - 18 == box_x && hook_y + 10 == box_y)
 				{
 					attached = 1;
+				}
+			}
+			else if (kierunek == 6 && box_y<=565)
+			{
+				attached = 0;
+				box_y=box_y+acceleration;
+				acceleration++;
+				if (box_y >= 565)
+				{
+					box_y = 565;
+					acceleration = 0;
 				}
 			}
 			else
