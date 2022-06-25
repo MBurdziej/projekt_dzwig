@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstdio>
 #include <gdiplus.h>
+#include <fstream>
 
 #define MAX_LOADSTRING 100
 #define TMR_1 1
@@ -19,8 +20,10 @@ INT value;
 
 // buttons
 HWND hwndButton;
+HWND TextBox;
 
 // sent data
+int kierunek;
 int col = 0, box_x = 350, box_y = 565;
 std::vector<Point> data;
 RECT drawArea1 = { 350, 130, 800, 619 };
@@ -63,8 +66,10 @@ int OnCreate(HWND window)
 
 void drawBox(HDC hdc) {
 	Gdiplus::Graphics gf2(hdc);
+	Pen pen(Color(255, 0, 0, 0));
 	Gdiplus::Bitmap box(L"box.png");
 	gf2.DrawImage(&box, box_x, box_y);
+	gf2.DrawLine(&pen, box_x + 22, 124, box_x + 22, box_y);
 }
 
 void repaintWindow(HWND hWnd, HDC& hdc, PAINTSTRUCT& ps, RECT* drawArea, int draw)
@@ -82,226 +87,292 @@ void repaintWindow(HWND hWnd, HDC& hdc, PAINTSTRUCT& ps, RECT* drawArea, int dra
 	EndPaint(hWnd, &ps);
 }
 
-	// main function (exe hInstance)
-	int APIENTRY _tWinMain(HINSTANCE hInstance,
-		HINSTANCE hPrevInstance,
-		LPTSTR    lpCmdLine,
-		int       nCmdShow)
+// main function (exe hInstance)
+int APIENTRY _tWinMain(HINSTANCE hInstance,
+	HINSTANCE hPrevInstance,
+	LPTSTR    lpCmdLine,
+	int       nCmdShow)
+{
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
+
+	// TODO: Place code here.
+	MSG msg;
+	HACCEL hAccelTable;
+
+	value = 0;
+
+	GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR           gdiplusToken;
+	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
+	// Initialize global strings
+	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+	LoadString(hInstance, IDC_DRAW, szWindowClass, MAX_LOADSTRING);
+	MyRegisterClass(hInstance);
+
+
+
+	// Perform application initialization:
+	if (!InitInstance(hInstance, nCmdShow))
 	{
-		UNREFERENCED_PARAMETER(hPrevInstance);
-		UNREFERENCED_PARAMETER(lpCmdLine);
-
-		// TODO: Place code here.
-		MSG msg;
-		HACCEL hAccelTable;
-
-		value = 0;
-
-		GdiplusStartupInput gdiplusStartupInput;
-		ULONG_PTR           gdiplusToken;
-		GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-
-		// Initialize global strings
-		LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-		LoadString(hInstance, IDC_DRAW, szWindowClass, MAX_LOADSTRING);
-		MyRegisterClass(hInstance);
-
-
-
-		// Perform application initialization:
-		if (!InitInstance(hInstance, nCmdShow))
-		{
-			return FALSE;
-		}
-
-		hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DRAW));
-
-		// Main message loop:
-		while (GetMessage(&msg, NULL, 0, 0))
-		{
-			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-		}
-
-		GdiplusShutdown(gdiplusToken);
-
-		return (int)msg.wParam;
+		return FALSE;
 	}
 
+	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DRAW));
 
-
-	//
-	//  FUNCTION: MyRegisterClass()
-	//
-	//  PURPOSE: Registers the window class.
-	//
-	//  COMMENTS:
-	//
-	//    This function and its usage are only necessary if you want this code
-	//    to be compatible with Win32 systems prior to the 'RegisterClassEx'
-	//    function that was added to Windows 95. It is important to call this function
-	//    so that the application will get 'well formed' small icons associated
-	//    with it.
-	//
-	ATOM MyRegisterClass(HINSTANCE hInstance)
+	// Main message loop:
+	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		WNDCLASSEX wcex;
-
-		wcex.cbSize = sizeof(WNDCLASSEX);
-
-		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = WndProc;
-		wcex.cbClsExtra = 0;
-		wcex.cbWndExtra = 0;
-		wcex.hInstance = hInstance;
-		wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_DRAW));
-		wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = MAKEINTRESOURCE(IDC_DRAW);
-		wcex.lpszClassName = szWindowClass;
-		wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-
-		return RegisterClassEx(&wcex);
-	}
-
-	//
-	//   FUNCTION: InitInstance(HINSTANCE, int)
-	//
-	//   PURPOSE: Saves instance handle and creates main window
-	//
-	//   COMMENTS:
-	//
-	//        In this function, we save the instance handle in a global variable and
-	//        create and display the main program window.
-	//
-	BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
-	{
-		HWND hWnd;
-
-
-		hInst = hInstance; // Store instance handle (of exe) in our global variable
-
-		// main window
-		hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
-
-		// create button and store the handle                                                       
-
-		hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
-			TEXT("DrawAll"),                  // the caption of the button
-			WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
-			0, 0,                                  // the left and top co-ordinates
-			80, 50,                              // width and height
-			hWnd,                                 // parent window handle
-			(HMENU)ID_BUTTON1,                   // the ID of your button
-			hInstance,                            // the instance of your application
-			NULL);                               // extra bits you dont really need
-
-
-		OnCreate(hWnd);
-
-		if (!hWnd)
+		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
 		{
-			return FALSE;
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
-
-		ShowWindow(hWnd, nCmdShow);
-		UpdateWindow(hWnd);
-
-		return TRUE;
 	}
 
-	//
-	//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-	//
-	//  PURPOSE:  Processes messages for the main window.
-	//
-	//  WM_COMMAND	- process the application menu
-	//  WM_PAINT	- Paint the main window (low priority)
-	//  WM_DESTROY	- post a quit message and return
-	//
-	//
-	LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+	GdiplusShutdown(gdiplusToken);
+
+	return (int)msg.wParam;
+}
+
+
+
+//
+//  FUNCTION: MyRegisterClass()
+//
+//  PURPOSE: Registers the window class.
+//
+//  COMMENTS:
+//
+//    This function and its usage are only necessary if you want this code
+//    to be compatible with Win32 systems prior to the 'RegisterClassEx'
+//    function that was added to Windows 95. It is important to call this function
+//    so that the application will get 'well formed' small icons associated
+//    with it.
+//
+ATOM MyRegisterClass(HINSTANCE hInstance)
+{
+	WNDCLASSEX wcex;
+
+	wcex.cbSize = sizeof(WNDCLASSEX);
+
+	wcex.style = CS_HREDRAW | CS_VREDRAW;
+	wcex.lpfnWndProc = WndProc;
+	wcex.cbClsExtra = 0;
+	wcex.cbWndExtra = 0;
+	wcex.hInstance = hInstance;
+	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_DRAW));
+	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.lpszMenuName = MAKEINTRESOURCE(IDC_DRAW);
+	wcex.lpszClassName = szWindowClass;
+	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+	return RegisterClassEx(&wcex);
+}
+
+//
+//   FUNCTION: InitInstance(HINSTANCE, int)
+//
+//   PURPOSE: Saves instance handle and creates main window
+//
+//   COMMENTS:
+//
+//        In this function, we save the instance handle in a global variable and
+//        create and display the main program window.
+//
+BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+{
+	HWND hWnd;
+
+
+	hInst = hInstance; // Store instance handle (of exe) in our global variable
+
+	// main window
+	hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
+
+	// create button and store the handle                                                       
+	hwndButton = CreateWindow(TEXT("button"), TEXT("GÓRA"),
+		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
+		1000, 0, 100, 50, hWnd, (HMENU)ID_RBUTTON1, GetModuleHandle(NULL), NULL);
+
+	hwndButton = CreateWindow(TEXT("button"), TEXT("DÓ£"),
+		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
+		1000, 100, 100, 50, hWnd, (HMENU)ID_RBUTTON2, GetModuleHandle(NULL), NULL);
+
+	hwndButton = CreateWindow(TEXT("button"), TEXT("PRAWO"),
+		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
+		1100, 50, 100, 50, hWnd, (HMENU)ID_RBUTTON3, GetModuleHandle(NULL), NULL);
+
+	hwndButton = CreateWindow(TEXT("button"), TEXT("LEWO"),
+		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
+		900, 50, 100, 50, hWnd, (HMENU)ID_RBUTTON4, GetModuleHandle(NULL), NULL);
+
+	hwndButton = CreateWindow(TEXT("button"), TEXT("STOP"),
+		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
+		1000, 50, 100, 50, hWnd, (HMENU)ID_RBUTTON5, GetModuleHandle(NULL), NULL);
+
+	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
+		TEXT("Show box"),                  // the caption of the button
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
+		800, 10,                                  // the left and top co-ordinates
+		80, 50,                              // width and height
+		hWnd,                                 // parent window handle
+		(HMENU)ID_BUTTON1,                   // the ID of your button
+		hInstance,                            // the instance of your application
+		NULL);                               // extra bits you dont really need
+
+
+	OnCreate(hWnd);
+
+	if (!hWnd)
 	{
-		int wmId, wmEvent;
-		PAINTSTRUCT ps, psBOX;
-		HDC hdc, hdcBOX;
+		return FALSE;
+	}
 
-		switch (message)
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	return TRUE;
+}
+
+//
+//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
+//
+//  PURPOSE:  Processes messages for the main window.
+//
+//  WM_COMMAND	- process the application menu
+//  WM_PAINT	- Paint the main window (low priority)
+//  WM_DESTROY	- post a quit message and return
+//
+//
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	int wmId, wmEvent;
+	PAINTSTRUCT ps, psBOX;
+	HDC hdc, hdcBOX;
+
+	switch (message)
+	{
+	case WM_COMMAND:
+		wmId = LOWORD(wParam);
+		wmEvent = HIWORD(wParam);
+
+		// MENU & BUTTON messages
+		// Parse the menu selections:
+		switch (wmId)
 		{
-		case WM_COMMAND:
-			wmId = LOWORD(wParam);
-			wmEvent = HIWORD(wParam);
-
-			// MENU & BUTTON messages
-			// Parse the menu selections:
-			switch (wmId)
-			{
-			case IDM_ABOUT:
-				DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-				break;
-			case IDM_EXIT:
-				DestroyWindow(hWnd);
-				break;
-			case ID_BUTTON1:
-			{
-				repaintWindow(hWnd, hdc, ps, &drawArea1, 1);
-			}
+		case IDM_ABOUT:
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
 			break;
-			default:
-				return DefWindowProc(hWnd, message, wParam, lParam);
-			}
+		case IDM_EXIT:
+			DestroyWindow(hWnd);
 			break;
-		case WM_PAINT:
+		case ID_BUTTON1:
 		{
-			PAINTSTRUCT ps;
-			HDC hdc = BeginPaint(hWnd, &ps);
-			// TODO: Tutaj dodaj kod rysuj¹cy u¿ywaj¹cy elementu hdc...
-			Gdiplus::Graphics gf(hdc);
-			Gdiplus::Bitmap bmp(L"dzwig2.png");
-			gf.DrawImage(&bmp, 0, 0);
-			EndPaint(hWnd, &ps);
+			repaintWindow(hWnd, hdc, ps, &drawArea1, 1);
 		}
 		break;
-		case WM_DESTROY:
-			PostQuitMessage(0);
+		case ID_RBUTTON1:
+			kierunek = 1;
+			SetTimer(hWnd, TMR_1, 25, 0);
 			break;
-
-		case WM_TIMER:
-			switch (wParam)
-			{
-			case TMR_1:
-				//force window to repaint
-				repaintWindow(hWnd, hdc, ps, &drawArea2, 1);
-				value++;
-				break;
-			}
-
+		case ID_RBUTTON2:
+			kierunek = 2;
+			SetTimer(hWnd, TMR_1, 25, 0);
+			break;
+		case ID_RBUTTON3:
+			kierunek = 3;
+			SetTimer(hWnd, TMR_1, 25, 0);
+			break;
+		case ID_RBUTTON4:
+			kierunek = 4;
+			SetTimer(hWnd, TMR_1, 25, 0);
+			break;
+		case ID_RBUTTON5:
+			KillTimer(hWnd, TMR_1);
+			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
-		return 0;
-	}
-
-	// Message handler for about box.
-	INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+		break;
+	case WM_CREATE:
 	{
-		UNREFERENCED_PARAMETER(lParam);
-		switch (message)
-		{
-		case WM_INITDIALOG:
-			return (INT_PTR)TRUE;
+		TextBox = CreateWindow(TEXT("EDIT"), TEXT("1"),
+			WS_VISIBLE | WS_CHILD | WS_BORDER,
+			700, 10, 60, 20,
+			hWnd, (HMENU)NULL, NULL, NULL);
+	}
+	break;
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hWnd, &ps);
+		// TODO: Tutaj dodaj kod rysuj¹cy u¿ywaj¹cy elementu hdc...
+		Gdiplus::Graphics gf(hdc);
+		Gdiplus::Bitmap bmp(L"dzwig.png");
+		gf.DrawImage(&bmp, 0, 0);
+		EndPaint(hWnd, &ps);
+	}
+	break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
 
-		case WM_COMMAND:
-			if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+	case WM_TIMER:
+		switch (wParam)
+		{
+		case TMR_1:
+			repaintWindow(hWnd, hdc, ps, &drawArea1, 1);
+			if (box_x < 650 && kierunek==3)
 			{
-				EndDialog(hDlg, LOWORD(wParam));
-				return (INT_PTR)TRUE;
+				box_x++;
+			}
+			else if(box_x > 350 && kierunek == 4)
+			{
+				box_x--;
+			}
+			else if (box_y > 150 && kierunek == 1)
+			{
+				box_y--;
+			}
+			else if (box_y < 565 && kierunek == 2)
+			{
+				box_y++;
+			}
+			else
+			{
+				KillTimer(hWnd, TMR_1);
 			}
 			break;
 		}
-		return (INT_PTR)FALSE;
+
+
+
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
+	return 0;
+}
+
+// Message handler for about box.
+INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+	switch (message)
+	{
+	case WM_INITDIALOG:
+		return (INT_PTR)TRUE;
+
+	case WM_COMMAND:
+		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+		{
+			EndDialog(hDlg, LOWORD(wParam));
+			return (INT_PTR)TRUE;
+		}
+		break;
+	}
+	return (INT_PTR)FALSE;
+}
