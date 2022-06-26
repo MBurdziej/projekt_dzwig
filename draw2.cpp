@@ -38,17 +38,22 @@ INT_PTR CALLBACK	Buttons(HWND, UINT, WPARAM, LPARAM);
 
 void tch_waga(int temp)
 {
-	int i = 0;
-	int num = 0;
+	int i = 0, j = 0;
+	int num = 0, num2 = 0;
 	while (text1[i] != 0)
 	{
 		num = (text1[i] - '0') + (num * 10);
 		i++;
 	}
-	if (temp == 0)
+	while (text2[j] != 0)
+	{
+		num2 = (text2[j] - '0') + (num2 * 10);
+		j++;
+	}
+	if (temp == 0 && num > 0)
 		weight = num;
-	else if (temp == 0)
-		max_weight = num;
+	else if (temp == 1 && num2 > 0)
+		max_weight = num2;
 }
 
 int OnCreate(HWND window)
@@ -326,7 +331,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 		case ID_RBUTTON1:
-			if (weight <= max_weight)
+			if (weight <= max_weight || attached == 0)
 			{
 				kierunek = 1;
 				SetTimer(hWnd, TMR_1, 25, 0);
@@ -337,7 +342,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		case ID_RBUTTON2:
-			if (weight <= max_weight)
+			if (weight <= max_weight || attached == 0)
 			{
 				kierunek = 2;
 				SetTimer(hWnd, TMR_1, 25, 0);
@@ -348,7 +353,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		case ID_RBUTTON3:
-			if (weight <= max_weight)
+			if (weight <= max_weight || attached == 0)
 			{
 				kierunek = 3;
 				SetTimer(hWnd, TMR_1, 25, 0);
@@ -359,7 +364,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		case ID_RBUTTON4:
-			if (weight <= max_weight)
+			if (weight <= max_weight || attached == 0)
 			{
 				kierunek = 4;
 				SetTimer(hWnd, TMR_1, 25, 0);
@@ -379,7 +384,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case ID_BUTTON7:
 			GetWindowText(TextBox2, text2, 10);
-			tch_waga(1);
+			if (attached == 0)
+				tch_waga(1);
 			break;
 		case ID_BUTTON8:
 			if (is_box == 1)
@@ -419,7 +425,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
-		// TODO: Tutaj dodaj kod rysuj¹cy u¿ywaj¹cy elementu hdc...
 		Gdiplus::Graphics gf(hdc);
 		Gdiplus::Bitmap bmp(L"dzwig.png");
 		gf.DrawImage(&bmp, 0, 0);
@@ -436,13 +441,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case TMR_1:
 			repaintWindow(hWnd, hdc, ps, &drawArea1);
-			if (attached == 1)
+			if (attached == 1 && max_weight >= weight)
 			{
 				float temp;
-				temp = weight / max_weight * 1.0;
+				temp = 1.0 * weight / max_weight;
 				Sleep(temp * 100);
 			}
-			if (((box_x < 680 && attached == 1) || (hook_x < 693 && attached == 0)) && kierunek == 3)//b³¹d
+			if (((box_x < 680 && attached == 1) || (hook_x < 693 && attached == 0)) && kierunek == 3)
 			{
 				if (attached == 1)
 				{
@@ -455,7 +460,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 
 			}
-			else if (((box_x > 350 && attached == 1) || (hook_x > 350 && attached == 0)) && kierunek == 4)//b³¹d
+			else if (((box_x > 350 && attached == 1) || (hook_x > 350 && attached == 0)) && kierunek == 4)
 			{
 				if (attached == 1)
 				{
@@ -468,7 +473,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 
 			}
-			else if (((box_y > 150 && attached == 1) || (hook_y > 150 && attached == 0)) && kierunek == 1)//b³¹d
+			else if (((box_y > 150 && attached == 1) || (hook_y > 150 && attached == 0)) && kierunek == 1)
 			{
 				if (attached == 1)
 				{
@@ -481,7 +486,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 
 			}
-			else if (((box_y < 565 && attached == 1) || (hook_y < 565 && attached == 0)) && kierunek == 2)//b³¹d
+			else if (((box_y < 565 && attached == 1) || (hook_y < 565 && attached == 0)) && kierunek == 2)
 			{
 				if (attached == 1)
 				{
