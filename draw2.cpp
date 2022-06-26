@@ -374,7 +374,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case ID_BUTTON6:
 			GetWindowText(TextBox, text1, 10);
-			tch_waga(0);
+			if (attached == 0)
+				tch_waga(0);
 			break;
 		case ID_BUTTON7:
 			GetWindowText(TextBox2, text2, 10);
@@ -435,7 +436,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case TMR_1:
 			repaintWindow(hWnd, hdc, ps, &drawArea1);
-			if (((box_x < 680 && attached == 1) || (hook_x < 680 && attached == 0)) && kierunek == 3)//b³¹d
+			if (attached == 1)
+			{
+				float temp;
+				temp = weight / max_weight * 1.0;
+				Sleep(temp * 100);
+			}
+			if (((box_x < 680 && attached == 1) || (hook_x < 693 && attached == 0)) && kierunek == 3)//b³¹d
 			{
 				if (attached == 1)
 				{
@@ -446,7 +453,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					hook_x += 2;
 				}
-				
+
 			}
 			else if (((box_x > 350 && attached == 1) || (hook_x > 350 && attached == 0)) && kierunek == 4)//b³¹d
 			{
@@ -459,7 +466,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					hook_x -= 2;
 				}
-				
+
 			}
 			else if (((box_y > 150 && attached == 1) || (hook_y > 150 && attached == 0)) && kierunek == 1)//b³¹d
 			{
@@ -472,7 +479,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					hook_y -= 2;
 				}
-				
+
 			}
 			else if (((box_y < 565 && attached == 1) || (hook_y < 565 && attached == 0)) && kierunek == 2)//b³¹d
 			{
@@ -485,25 +492,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					hook_y += 2;
 				}
-				
+
 			}
 			else if (kierunek == 5 && attached == 0)
 			{
 				if (box_x > hook_x - 18)
 				{
-					hook_x++;
+					if (abs(box_x - hook_x + 18) > 1)
+						hook_x = hook_x + 2;
+					else
+						hook_x++;
 				}
 				else if (box_x < hook_x - 18)
 				{
-					hook_x--;
+					if (abs(box_x - hook_x + 18) > 1)
+						hook_x = hook_x - 2;
+					else
+						hook_x--;
 				}
 				else if (box_y < hook_y + 10)
 				{
-					hook_y--;
+					if (abs(box_y - hook_y - 10) > 1)
+						hook_y = hook_y - 2;
+					else
+						hook_y--;
 				}
 				else if (box_y > hook_y + 10)
 				{
-					hook_y++;
+					if (abs(box_y - hook_y - 10) > 1)
+						hook_y = hook_y + 2;
+					else
+						hook_y++;
 				}
 				if (hook_x - 18 == box_x && hook_y + 10 == box_y)
 				{
