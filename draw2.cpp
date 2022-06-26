@@ -440,32 +440,52 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (attached == 1)
 				{
 					box_x++;
+					hook_x++;
 				}
-				hook_x++;
+				else
+				{
+					hook_x += 2;
+				}
+				
 			}
 			else if (((box_x > 350 && attached == 1) || (hook_x > 350 && attached == 0)) && kierunek == 4)//b³¹d
 			{
 				if (attached == 1)
 				{
 					box_x--;
+					hook_x--;
 				}
-				hook_x--;
+				else
+				{
+					hook_x -= 2;
+				}
+				
 			}
 			else if (((box_y > 150 && attached == 1) || (hook_y > 150 && attached == 0)) && kierunek == 1)//b³¹d
 			{
 				if (attached == 1)
 				{
 					box_y--;
+					hook_y--;
 				}
-				hook_y--;
+				else
+				{
+					hook_y -= 2;
+				}
+				
 			}
 			else if (((box_y < 565 && attached == 1) || (hook_y < 565 && attached == 0)) && kierunek == 2)//b³¹d
 			{
 				if (attached == 1)
 				{
 					box_y++;
+					hook_y++;
 				}
-				hook_y++;
+				else
+				{
+					hook_y += 2;
+				}
+				
 			}
 			else if (kierunek == 5 && attached == 0)
 			{
